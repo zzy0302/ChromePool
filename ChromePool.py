@@ -8,17 +8,24 @@ class chromepool():
     def __init__(self, maxsize=5, minsize=1, timeout=10, options=ChromeOptions()):
         self.pool = []
         self.maxsize = maxsize
+        self.current = 0
         self.minsize = minsize
         self.timeout = timeout
         self.new(minsize, options=options)
+        self.getting = False
 
     def new(self, cut=1, options=ChromeOptions()):
         for i in range(cut):
-            _ch = Chrome(options=options)
-            id = _ch.session_id
-            _temp = {'num': i, 'id': id, 'd': _ch, 'buzy': False,
-                     'st': time.perf_counter()}
-            self.pool.append(_temp)
+            if self.current+1 < self.maxsize:
+                _ch = Chrome(options=options)
+                id = _ch.session_id
+                _temp = {'num': i, 'id': id, 'd': _ch, 'buzy': False,
+                         'st': time.perf_counter()}
+                self.current -= 1
+                self.pool.append(_temp)
+            else:
+                return False
+        return True
 
     def delete(self, _target):
         for i in self.pool:
@@ -38,14 +45,22 @@ class chromepool():
             return False
 
     def get(self):
+        while self.getting:
+            time.sleep(0.01)
+        self.getting = True
         for i in self.pool:
             if i['buzy'] == False:
                 i['st'] = time.perf_counter()
                 i['buzy'] = True
+                self.getting = False
                 return i['d']
         else:
-            self.new()
-            return self.pool[-1]['d']
+            if self.new():
+                self.getting = False
+                return self.pool[-1]['d']
+            else:
+                self.getting = False
+                return False
 
     def release(self, _target=''):
         if _target == '':
