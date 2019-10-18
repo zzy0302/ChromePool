@@ -21,7 +21,7 @@ class chromepool():
                 id = _ch.session_id
                 _temp = {'num': i, 'id': id, 'd': _ch, 'buzy': False,
                          'st': time.perf_counter()}
-                self.current -= 1
+                self.current += 1
                 self.pool.append(_temp)
             else:
                 return False
@@ -32,22 +32,29 @@ class chromepool():
             if i['id'].session_id == _target.session_id:
                 i['d'].quit()
                 self.pool.remove(i)
+                self.current -= 1
                 return True
         return False
 
     def delete_all(self):
+        while self.getting:
+            time.sleep(0.01)
+        self.getting = True
         try:
             for i in self.pool:
                 i['d'].quit()
                 self.pool.remove(i)
+                self.getting = False
             return True
         except Exception:
+            self.getting = False
             return False
 
     def get(self):
         while self.getting:
             time.sleep(0.01)
         self.getting = True
+        print(self.getting)
         for i in self.pool:
             if i['buzy'] == False:
                 i['st'] = time.perf_counter()
@@ -57,6 +64,7 @@ class chromepool():
         else:
             if self.new():
                 self.getting = False
+                self.pool[-1]['buzy'] = True
                 return self.pool[-1]['d']
             else:
                 self.getting = False
