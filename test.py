@@ -1,0 +1,12 @@
+from ChromePool import chromepool
+a=chromepool()
+temp=a.get()
+temp.get('http://washingpatrick.cn')
+a.release(temp)
+temp2=a.get()
+temp3=a.get()
+temp4=a.get()
+temp2.get('http://washingpatrick.cn')
+temp3.get('http://washingpatrick.cn')
+temp4.get('http://washingpatrick.cn')
+a.delete_all()
