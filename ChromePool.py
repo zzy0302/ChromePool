@@ -28,7 +28,7 @@ class chromepool():
         return True
 
     def delete(self, _target):
-        for i in self.pool:
+        for i in self.pool[:]:
             if i['id'].session_id == _target.session_id:
                 i['d'].quit()
                 self.pool.remove(i)
@@ -41,7 +41,7 @@ class chromepool():
             time.sleep(0.01)
         self.getting = True
         try:
-            for i in self.pool:
+            for i in self.pool[:]:
                 i['d'].quit()
                 self.pool.remove(i)
                 self.getting = False
