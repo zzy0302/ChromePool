@@ -1,17 +1,21 @@
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.support.select import Select
 import time
+import threading
 
 
 class chromepool():
 
-    def __init__(self, maxsize=5, minsize=1, timeout=10, options=ChromeOptions()):
+    def __init__(self, maxsize=5, minsize=1, timeout=10, options=ChromeOptions(),monitor=False):
         self.pool = []
+        self.monitor_start = monitor
         self.maxsize = maxsize
         self.current = 0
         self.minsize = minsize
         self.timeout = timeout
         self.new(minsize, options=options)
+        if self.monitor_start:
+            self.start_monitor()
         self.getting = False
 
     def new(self, cut=1, options=ChromeOptions()):
@@ -78,6 +82,15 @@ class chromepool():
                 _target.delete_all_cookies()
                 i['buzy'] = False
                 return True
+
+    def start_monitor(self, level=1):
+        _temp = threading.Thread(target=self.monitor, args={level})
+        _temp.start()
+        _temp.join()
+        self.monitor_start=_temp
+
+    def stop_monitor(self):
+        self.monitor_start._stop()
 
     def monitor(self, level=1):
         while True:
